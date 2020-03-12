@@ -1,0 +1,274 @@
+<html>
+<head>
+  <title>Ξvoting</title>
+  <meta charset="UTF-8"/>
+
+  <!-- 3rd-party libs -->
+  <script src="libs/jquery.min.js"></script>
+  <script src="libs/web3.min.js"></script>
+  <script src="libs/keythereum.min.js"></script>
+  <script src="libs/qrcode.min.js"></script>
+
+  <!-- Theme: SKINS -->
+  <link id="PageSkin" rel="stylesheet" type="text/css" href="skins/plain.css"/>
+  <script src="skins/skins.js"></script>
+
+  <!-- I18N: LABELS/STRINGS/LANG -->
+  <script src="languages/labels.js"></script>
+  <script src="languages/english.js"></script>
+  <script src="languages/about_english.js"></script>
+
+  <!-- App Logic: objects -->
+  <script src="app/common/adilos.js"></script>
+  <script src="app/common/ens.js"></script>
+
+  <!-- App Logic: MODELs -->
+  <script src="app/common/model.js"></script>
+  <script src="app/start/model.js"></script>
+  <script src="app/enroll/model.js"></script>
+
+  <!-- App Logic: VIEWs -->
+  <script src="app/common/view.js"></script>
+  <script src="app/start/view.js"></script>
+  <script src="app/enroll/view.js"></script>
+
+  <!-- App Logic: CONTROLLERs -->
+  <script src="app/common/ctrl.js"></script>
+  <script src="app/start/ctrl.js"></script>
+  <script src="app/enroll/ctrl.js"></script>
+  <script src="app/vote/ctrl.js"></script>
+  <script src="app/about/ctrl.js"></script>
+
+  <script>
+    const CRYPTO = require( 'crypto' );
+    const SECP256K1 = require( 'secp256k1/elliptic' );
+    const NAMEHASH = require( 'eth-ens-namehash' );
+  </script>
+</head>
+
+<body>
+
+<table width=100%>
+<tr>
+  <td align="right">
+    <span id="SkinLabel" class="label"></span>
+    <select id="SkinCB" class="data" onchange="SKINS.setSkin();">
+      <option value="plain">plain</option>
+    </select>
+    &nbsp;&nbsp;
+    <span id="LanguageLabel" class="label">&nbsp;</span>
+    <select id="LanguageCB" class="data" onchange="LABELS.setLabels();">
+      <option value="English">English</option>
+    </select>
+  </td>
+</tr>
+</table>
+
+<div class="tab">
+<button class="tablinks redtext" id="StartTabButton"
+  onclick="VIEW.openTab(event, 'StartTab');STARTCTRL.initStartTab();" />
+<button class="tablinks" id="EnrollTabButton"
+  onclick="VIEW.openTab(event, 'EnrollTab');ENROLLCTRL.initEnrollTab();" />
+<button class="tablinks" id="VoteTabButton"
+  onclick="VIEW.openTab(event, 'VoteTab');VOTECTRL.initVoteTab();" />
+<button class="tablinks" id="AboutTabButton"
+  onclick="VIEW.openTab(event, 'AboutTab');ABOUTCTRL.initAboutTab();" />
+</div>
+
+<div id="StartTab" class="tabcontent">
+<table>
+<tr>
+<td align=right><div id="WSURLLabel" class=label /></td>
+<td>
+  <input id="WSURLValue" type=text class=data size=34 maxlength=33
+     value="ws://localhost:8546" onchange="STARTCTRL.wsUrlChanged()" />
+</td>
+</tr>
+<tr>
+  <td class="label" align=right><div id="GasPriceLabel"/></td>
+  <td>
+    <input id="GasTextValue" class="data" type=text size=15 />&nbsp;
+    <span class=units>wei/unit</span>&nbsp;&nbsp;
+    <span class="hyperlink" onclick="window.open('https://ethgasstation.info',
+      true)">ethgasstation.info</span>
+  </td>
+</tr>
+</table>
+<fieldset class=fieldset>
+<legend id="AddPrivateKeyLegend" class="legend"></legend>
+<table width=100%>
+<tr>
+  <td align=right><div id="LoadRawKeyLabel" class="label" /></td>
+  <td>
+    <input id="LoadRawKeyField" class=redtext type=text size=70 maxlength=66
+      onchange="STARTCTRL.ingestRawKey()" />
+  </td>
+</tr>
+<tr>
+  <td align=right valign=top>
+    <div id="PasteGethFileLabel" class=label />
+  </td>
+  <td>
+    <textarea id="PasteGethFileField" class=reddata rows=6 cols=70
+      onchange="STARTCTRL.ingestGeth()"></textarea>
+  </td>
+</tr>
+</table>
+</fieldset>
+<table>
+<tr>
+  <td class="label" align=right><div id="AddrLabel"></div></td>
+  <td><div id="AddrValue" class=data /></td>
+</tr>
+<tr>
+<td align=right><div id="MyBalanceLabel" class=label /></td>
+<td><span id="MyBalanceValue"
+    class=data>&nbsp;</span>&nbsp;&nbsp;<span class=units>ether</span>
+</td>
+</tr>
+<tr>
+  <td align=right><div id="TxCountLabel" class=label /></td>
+  <td><div id="TxCountValue" class=data /></td>
+</tr>
+</table>
+</div>
+
+<div id="EnrollTab" class="tabcontent">
+<table>
+<tr>
+  <td class="label" align=right><div id="VoterListLabel"></div></td>
+  <td>
+  <input id="VoterListValue" class=data type=text size=50
+    value="voters.cascadia.eth"
+    onchange="ENROLLCTRL.useVoterList(this.value)"/>&nbsp;
+    <span id="SCAENSLabel" class=units></span>
+  </td>
+</tr>
+<tr>
+  <td class="label" align=right valign=top>
+    <div id="IDChallengeLabel"></div>
+  </td>
+  <td align=center bgcolor=white height=500>
+    <div id="ChallengeResponseArea">
+      <span id="ChallengeArea"></span>
+      <span id="ResponseArea">
+        <video id="ScannerVideo" width=500 height=500
+               muted autoplay playsinline></video>
+      </span>
+      <span id="ScanResult">
+        <canvas id="ScanResultCanvas" width=500 height=500></canvas>
+      </span>
+    </div>
+  </td>
+</tr>
+<tr>
+  <td/>
+  <td align=center>
+    <table width=100%>
+      <tr>
+        <td width=33% align=center>
+        <button class="label" id="ChallengeButton"
+          onclick="ENROLLCTRL.newChallenge();" />
+        </td>
+        <td width=33% align=center>
+        <button class="label" id="ScanButton"
+          onclick="ENROLLCTRL.scanForResponse();" />
+        </td>
+        <td width=33% align=center>
+        <button class="label" id="EnrollVoterButton"
+          onclick="ENROLLCTRL.enrollVoter();" />
+        </td>
+      </tr>
+    </table>
+</tr>
+</table>
+</div>
+
+<div id="VoteTab" class="tabcontent">
+<table>
+<tr>
+  <td class="label" align=right><div id="VoteLabel"></div></td>
+  <td>
+  <input id="VoteValue" class=data type=text size=50
+    value="election2022.cascadia.eth"
+    onchange="VOTECTRL.useVote(this.value)"/>&nbsp;
+    <span id="SCAENSLabel2" class=units></span>
+  </td>
+</tr>
+<tr>
+  <td class="label" align=right>
+    <div id="CandidateLabel"></div>
+  </td>
+  <td align=left>
+    <select id="CandidateSelect" class="data" onchange="candidateSelected()" />
+  </td>
+</tr>
+<tr>
+  <td/>
+  <td align=center bgcolor=white height=450>
+    <span id="VoteScanResult">
+      <canvas id="VoteScanResultCanvas" width=450 height=450></canvas>
+    </span>
+  </td>
+</tr>
+<tr>
+  <td/>
+  <td align=center>
+  <table width=100%>
+    <tr>
+      <td width=33% align=center>
+        <button class="label" id="ScanVoteButton"
+          onclick="VOTECTRL.scanForVote();" />
+      </td>
+      <td width=33% />
+      <td width=33% align=center>
+        <button class="label" id="VoteButton" onclick="VOTECTRL.doVote();" />
+      </td>
+    </tr>
+  </table>
+</tr>
+</table>
+</div>
+
+<div id="AboutTab" class="tabcontent">
+  <textarea id="AboutTextArea" rows=35 cols=98 readonly></textarea>
+</div>
+
+<script type="module">
+  import QrScanner from "./node_modules/qr-scanner/qr-scanner.min.js";
+  QrScanner.WORKER_PATH =
+    "./node_modules/qr-scanner/qr-scanner-worker.min.js";
+
+  var scancb;
+
+  const video = document.getElementById('ScannerVideo');
+
+  const scanner = new QrScanner( video, result => {
+    result = result.replace(/\s/g, '');
+    scancb( result );
+  } );
+
+  global.startQRScanner = function() {
+    scanner.start();
+  }
+
+  global.pauseQRScanner = function() {
+    scanner.pause();
+  }
+
+  global.setScannerCallback = function( cb ) {
+    scancb = cb;
+  }
+</script>
+
+<script type="text/javascript">
+  window.resizeTo( 850, 720 );
+
+  LABELS.setLabels();
+  SKINS.setSkin();
+  STARTCTRL.wsUrlChanged();
+</script>
+
+</body>
+</html>
+

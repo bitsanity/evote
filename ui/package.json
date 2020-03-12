@@ -1,0 +1,9 @@
+{
+  "chromium-args": "--enable-logging=stderr",
+  "name": "Ξvoting",
+  "version": "0.1.0",
+  "description": "Voting over Ethereum",
+  "main": "index.html",
+  "dependencies": "{}"
+}
+

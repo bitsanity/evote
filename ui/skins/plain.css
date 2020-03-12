@@ -1,0 +1,90 @@
+body {
+  background-color: #F0F0F0;
+}
+
+.tab {
+    overflow: hidden;
+    border: 1px solid #ccc;
+    background-color: #f1f1f1;
+}
+
+.tab button {
+    background-color: inherit;
+    font-family: inherit;
+    font-weight: bold;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 10px 12px;
+    transition: 0.3s;
+}
+
+.tab button:hover {
+    background-color: #ddd;
+}
+
+.tab button.active {
+    background-color: #ccc;
+}
+
+.tabcontent {
+    display: none;
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    border-top: none;
+}
+
+table {
+  border-spacing: 5px;
+}
+
+td {
+  padding: 5px;
+}
+
+canvas {
+  border:1px solid #000000;
+}
+
+.legend {
+  font-weight: bold;
+  border-radius: 3px;
+}
+
+.label {
+  font-weight: bold;
+}
+
+.redtext {
+  color: red;
+}
+
+.units {
+  font-style: italic;
+}
+
+.data {
+  font-family: monospace;
+  color: darkgreen;
+}
+
+.reddata {
+  font-family: monospace;
+  color: red;
+}
+
+.hyperlink {
+  color: darkblue;
+  text-decoration: underline;
+}
+
+.highlighted {
+  background-color: yellow;
+}
+
+#ChallengeArea {
+  width:450;
+  height:450;
+  background-color:white;
+}
