@@ -18,21 +18,23 @@
   <script src="languages/english.js"></script>
   <script src="languages/about_english.js"></script>
 
-  <!-- App Logic: objects -->
+  <!-- common objects -->
   <script src="app/common/adilos.js"></script>
   <script src="app/common/ens.js"></script>
 
-  <!-- App Logic: MODELs -->
+  <!-- MODELs -->
   <script src="app/common/model.js"></script>
   <script src="app/start/model.js"></script>
   <script src="app/enroll/model.js"></script>
+  <script src="app/vote/model.js"></script>
 
-  <!-- App Logic: VIEWs -->
+  <!-- VIEWs -->
   <script src="app/common/view.js"></script>
   <script src="app/start/view.js"></script>
   <script src="app/enroll/view.js"></script>
+  <script src="app/vote/view.js"></script>
 
-  <!-- App Logic: CONTROLLERs -->
+  <!-- CONTROLLERs -->
   <script src="app/common/ctrl.js"></script>
   <script src="app/start/ctrl.js"></script>
   <script src="app/enroll/ctrl.js"></script>
@@ -200,15 +202,23 @@
     <div id="CandidateLabel"></div>
   </td>
   <td align=left>
-    <select id="CandidateSelect" class="data" onchange="candidateSelected()" />
+    <select id="CandidateSelect" class="data"
+      onchange="VOTECTRL.candidateSelected()" />
   </td>
 </tr>
 <tr>
   <td/>
-  <td align=center bgcolor=white height=450>
-    <span id="VoteScanResult">
-      <canvas id="VoteScanResultCanvas" width=450 height=450></canvas>
-    </span>
+  <td align=center bgcolor=white height=500>
+    <div id="VoteChallengeResponseArea">
+      <span id="VoteChallengeArea"></span>
+      <span id="VoteResponseArea">
+        <video id="VoteScannerVideo" width=500 height=500
+               muted autoplay playsinline></video>
+      </span>
+      <span id="VoteScanResult">
+        <canvas id="VoteScanResultCanvas" width=500 height=500></canvas>
+      </span>
+    </div>
   </td>
 </tr>
 <tr>
@@ -236,24 +246,36 @@
 
 <script type="module">
   import QrScanner from "./node_modules/qr-scanner/qr-scanner.min.js";
-  QrScanner.WORKER_PATH =
-    "./node_modules/qr-scanner/qr-scanner-worker.min.js";
+  QrScanner.WORKER_PATH = "./node_modules/qr-scanner/qr-scanner-worker.min.js";
 
   var scancb;
+  var scanner;
 
-  const video = document.getElementById('ScannerVideo');
+  global.setVideo = function(video) {
+    if (scanner) {
+      scanner.destroy();
+    }
 
-  const scanner = new QrScanner( video, result => {
-    result = result.replace(/\s/g, '');
-    scancb( result );
-  } );
+    scanner = new QrScanner( video, result => {
+      result = result.replace(/\s/g, '');
+      scancb( result );
+    } );
+  }
+
+  global.initEnrollVideo = function() {
+    global.setVideo( document.getElementById("ScannerVideo") );
+  }
+
+  global.initVoteVideo = function() {
+    global.setVideo( document.getElementById("VoteScannerVideo") );
+  }
 
   global.startQRScanner = function() {
-    scanner.start();
+    if (scanner) scanner.start();
   }
 
   global.pauseQRScanner = function() {
-    scanner.pause();
+    if (scanner) scanner.pause();
   }
 
   global.setScannerCallback = function( cb ) {
@@ -262,7 +284,7 @@
 </script>
 
 <script type="text/javascript">
-  window.resizeTo( 850, 720 );
+  window.resizeTo( 850, 740 );
 
   LABELS.setLabels();
   SKINS.setSkin();

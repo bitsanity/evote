@@ -28,7 +28,7 @@ var STARTVIEW = (function() {
   }
 
   function gasPrice() {
-    return $( "#GasTextValue" ).val;
+    return $( "#GasTextValue" ).val();
   }
 
   function setGasPrice( gprix ) {

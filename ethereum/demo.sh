@@ -38,8 +38,18 @@ REGS='0x4Ebf4321A360533AC2D48A713B8f18D341210078'
 VTRS='0x9E8bFcBC56a63ca595C262e1921D3B7a00BB9cF0'
 ELEC='0xDbB97B008f97895A4F38a7f00e9C2B78a4bC5941'
 
+# Candidate: Alice
+C1_NAME='Alice Aardvark'
+C1_CHALL="aAMydcLuhYrZjvADDPvFKYcsDxN6mL8iDMgEgY0kRCg84DBFAiEAv2a8c7UYrbV8Itu3nX+zRsxX5gpuxoD3nYEFc230R2ECIGkq4ILme9QqX8YDkVau/XwFuroae1qbY0rX7v+DRlDu"
+
+C2_NAME='Bob Badger'
+C2_CHALL="ZwM+D+xGUViS4R0RDH/FpOEJWl9YaZEmA9OaiMaCt0OHdjBEAiBSEoxzsbwwE6RY+70A4sztd0kmmxt42hrJb0RlGhmzUwIgTCqFJze7R9OUPB9oX1AurmO21i4yMgBGicuITq49MY4="
+
+C3_NAME='Charlie Cheetah'
+C3_CHALL="ZwP0P3tjh67dH33mJ/y7S3gDugyGd5yQzxk+o28lBic1HDBEAiBlhIGAErKe64jMzrrzE+1n1LZnii4lskMzlmxpgnpIPwIgeZUFoOcb34yoyQPZ5QDpZfsFnkIwGsLNpTzmUgLtPTo="
+
 echo ""
-echo "===== deploying everything ====="
+echo "===== deploying contracts ====="
 pushd ens
 node cli.js 0 0 deploy
 popd
@@ -66,6 +76,24 @@ pushd ens
 node cli.js 0 $ENS setAddr $RNOD $REGS
 node cli.js 0 $ENS setAddr $VNOD $VTRS
 node cli.js 0 $ENS setAddr $ENOD $ELEC
+popd
+echo ""
+
+echo ""
+echo "===== Set Account(0) as Registrar ====="
+pushd registrars
+node cli.js 0 $REGS setRegistrar $TESTACCTA "true"
+popd
+echo ""
+
+echo ""
+echo "===== Set up 3 Candidates ====="
+pushd votes
+node cli.js 0 $ELEC setCandidate "$C1_NAME" $C1_CHALL "true"
+node cli.js 0 $ELEC setCandidate "$C2_NAME" $C2_CHALL "true"
+node cli.js 0 $ELEC setCandidate "$C3_NAME" $C3_CHALL "true"
+
+node cli.js 0 $ELEC setRunning "true"
 popd
 echo ""
 

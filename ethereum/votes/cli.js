@@ -31,7 +31,10 @@ const cmds =
    'deploy',
    'events',
    'variables',
-   'enroll'
+   'challenges',
+   'candidate',
+   'setCandidate',
+   'setRunning'
   ];
 
 function usage() {
@@ -41,7 +44,10 @@ function usage() {
      '\tdeploy <ensname> |\n',
      '\tevents |\n',
      '\tvariables |\n',
-     '\tenroll <pubkeyhex> |\n'
+     '\tchallenges |\n',
+     '\tcandidate <challenge>|\n',
+     '\tsetCandidate <name> <challenge> <status> |\n',
+     '\tsetRunning <true | false> |\n'
   );
 }
 
@@ -97,25 +103,60 @@ web3.eth.getAccounts().then( (res) => {
 
       if (cmd == 'variables')
       {
-        con.methods.regs().call().then( (res) => {
-          console.log( "Registrars = ", res )
-        } )
-        .catch( err => { console.log(err.toString()) } );
-
         con.methods.ensname().call().then( (res) => {
           console.log( "ensname = ", res )
         } )
         .catch( err => { console.log(err.toString()) } );
-      }
 
-      if (cmd == 'enroll')
-      {
-        let voter = process.argv[5];
-
-        con.methods.enroll( voter )
-        .send( {from: eb, gas: 100000, gasPrice: MYGASPRICE} )
+        con.methods.running().call().then( (res) => {
+          console.log( "running = ", res )
+        } )
         .catch( err => { console.log(err.toString()) } );
       }
+
+      if (cmd == 'challenges')
+      {
+        con.methods.getChallengeCount().call().then( res => {
+          for( let ii = 0; ii < res; ii++ ) {
+            con.methods.challenges(ii).call().then( ch => {
+              console.log( 'challenges[' + ii + '] = ' + item );
+            } )
+            .catch( err => { console.log(err.toString()) } );
+          }
+        } )
+        .catch( err => { console.log(err.toString()) } );
+      }
+
+      if (cmd == 'candidate') {
+        let chall = process.argv[5];
+        con.methods.candidate(chall).call().then( obj => {
+          console.log( 'candidate\n\tname: ' +
+                       obj.name +
+                       '\n\tstatus: ' +
+                       obj.status +
+                       '\n\tchallenge: ' + chall );
+        } )
+        .catch( err => { console.log(err.toString()) } );
+      }
+
+      if (cmd == 'setCandidate') {
+        let name = process.argv[5];
+        let challenge = process.argv[6];
+        let stat = process.argv[7];
+
+        con.methods.setCandidate( name, challenge, stat )
+        .send( {from:eb, gas:300000, gasPrice:MYGASPRICE} )
+        .catch( err => { console.log(err.toString())} );
+      }
+
+      if (cmd == 'setRunning') {
+        let flag = process.argv[5];
+
+        con.methods.setRunning( flag )
+        .send( {from:eb, gas:100000, gasPrice:MYGASPRICE} )
+        .catch( err => { console.log(err.toString())} );
+      }
+
     }
 } );
 

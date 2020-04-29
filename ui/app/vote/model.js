@@ -1,10 +1,12 @@
 var VOTEMODEL = (function() {
 
-  const VOTEABI = '[{"constant":false,"inputs":[{"internalType":"address","name":"_newCEO","type":"address"}],"name":"appoint","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"string","name":"_name","type":"string"},{"internalType":"bytes","name":"_challenge","type":"bytes"},{"internalType":"bool","name":"_status","type":"bool"}],"name":"setCandidate","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"challenges","outputs":[{"internalType":"bytes","name":"","type":"bytes"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"ceo","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"internalType":"bytes","name":"","type":"bytes"}],"name":"candidates","outputs":[{"internalType":"bytes","name":"challenge","type":"bytes"},{"internalType":"string","name":"name","type":"string"},{"internalType":"bool","name":"status","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"running","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"bool","name":"_running","type":"bool"}],"name":"setRunning","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"ensname","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"bytes","name":"_response","type":"bytes"}],"name":"vote","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"_ensname","type":"string"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"bytes","name":"response","type":"bytes"}],"name":"Vote","type":"event"}]';
+  const VOTEABI = '[{"inputs":[{"internalType":"string","name":"_ensname","type":"string"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"string","name":"response","type":"string"}],"name":"Vote","type":"event"},{"inputs":[{"internalType":"address","name":"_newCEO","type":"address"}],"name":"appoint","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"","type":"string"}],"name":"candidates","outputs":[{"internalType":"string","name":"name","type":"string"},{"internalType":"bool","name":"status","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"ceo","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"challenges","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"ensname","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getChallengeCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"running","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"_name","type":"string"},{"internalType":"string","name":"_challenge","type":"string"},{"internalType":"bool","name":"_status","type":"bool"}],"name":"setCandidate","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_running","type":"bool"}],"name":"setRunning","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"_response","type":"string"}],"name":"vote","outputs":[],"stateMutability":"nonpayable","type":"function"}]';
 
   const VOTEGAS = 100000;
 
   var VoteCon;
+
+  var Candidates = {}; // { name:chall* }
 
   function setVote( ensname, errcb, rescb ) {
     ENS.nameToAddress( ensname, sca => {
@@ -21,32 +23,35 @@ var VOTEMODEL = (function() {
     } );
   }
 
-  // returns { name1:chall1, ... namen: challn }
-
   async function candidates( errcb, rescb ) {
-    VoteCon.methods.candidates().call()
-    .then( bytesarray => {
 
-      let result = {};
+    let result = [];
 
-      for( let ii = 0; ii < bytesarray.length; ii++ ) {
-        let cobj = await VoteCon.methods.candidates( bytesarray[ii] );
+    try {
+      let count = await VoteCon.methods.getChallengeCount().call();
+
+      for (let ii = 0; ii < count; ii++) {
+        let chall = await VoteCon.methods.challenges(ii).call();
+        let cobj = await VoteCon.methods.candidates(chall).call();
         let nm = cobj[0];
-
-        if (!nm || nm.length == 0)
-          continue;
-
-        result[nm] = bytesarray[ii];
+        let st = cobj[1];
+        if (nm && st) {
+          result.push( nm );
+          Candidates[nm] = chall;
+        }
       }
-
       rescb( result );
-    } )
-    .catch( err => {
+    }
+    catch( err ) {
       errcb( err.toString() );
-    } );
+    }
   }
 
-  function vote( votestr, errcb, rescb ) {
+  function challengeFor( name ) {
+    return Candidates[name];
+  }
+
+  async function vote( votestr, errcb, rescb ) {
     let web3 = MODEL.getWeb3();
     let usr = STARTMODEL.getUser();
     let calldata = VoteCon.methods.vote( votestr ).encodeABI();
@@ -71,6 +76,7 @@ var VOTEMODEL = (function() {
   return {
     setVote:setVote,
     candidates:candidates,
+    challengeFor:challengeFor,
     vote:vote
   };
 

@@ -55,12 +55,16 @@ var ENROLLVIEW = (function() {
     setEnrollEnabled( false );
   }
 
-  function showScanResult( pubkeyhex ) {
-
+  function prepScanResult() {
     $( "#ChallengeArea" ).hide();
     $( "#ResponseArea" ).hide();
     $( "#ScanResult" ).show();
     setEnrollEnabled( true );
+  }
+
+  function showScanResult( pubkeyhex ) {
+
+    prepScanResult();
 
     let canvas = document.getElementById( "ScanResultCanvas" );
     let ctx = canvas.getContext('2d');
@@ -85,6 +89,7 @@ var ENROLLVIEW = (function() {
     clearChallenge:clearChallenge,
     showQRCode:showQRCode,
     showCameraOutput:showCameraOutput,
+    prepScanResult:prepScanResult,
     showScanResult:showScanResult
   };
 

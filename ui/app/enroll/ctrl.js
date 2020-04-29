@@ -9,7 +9,7 @@ var ENROLLCTRL = (function() {
     voter = "";
 
     ENROLLVIEW.clearChallenge();
-    global.pauseQRScanner();
+    global.initEnrollVideo();
 
     useVoterList( ENROLLVIEW.getVoterListValue() );
   }
@@ -27,7 +27,6 @@ var ENROLLCTRL = (function() {
   function newChallenge() {
 
     challenge = ADILOS.newGatekeeperChallenge();
-    console.log( 'challenge:\n' + challenge + '\n' );
     ENROLLVIEW.showQRCode( challenge );
     global.pauseQRScanner();
   }

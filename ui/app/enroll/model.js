@@ -25,7 +25,8 @@ var ENROLLMODEL = (function() {
 
     let web3 = MODEL.getWeb3();
     let usr = STARTMODEL.getUser();
-    let calldata = VotersCon.methods.enroll( voterpubkeyhex ).encodeABI();
+    let calldata =
+      VotersCon.methods.enroll( '0x' + voterpubkeyhex ).encodeABI();
 
     let txobj = { nonce:usr.nonce++,
                   to:VotersCon.options.address,
@@ -34,6 +35,7 @@ var ENROLLMODEL = (function() {
                   gasPrice:STARTVIEW.gasPrice() };
 
     let priv = usr.privkey.toString('hex');
+
     let sigObj = await web3.eth.accounts.signTransaction( txobj, priv );
     web3.eth.sendSignedTransaction( sigObj.rawTransaction, (err,res) => {
       if (err) {

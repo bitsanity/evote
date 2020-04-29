@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
 // Here, the CEO ("Chief Electoral Officer") is the public Ethereum account of
 // someone responsible for the administration of elections, referendum and other
@@ -27,7 +27,7 @@ contract HasCEO {
 
 contract Votes is HasCEO {
 
-  event Vote( bytes response );
+  event Vote( string response );
 
   string public ensname;
   bool public running;
@@ -37,11 +37,15 @@ contract Votes is HasCEO {
     bool status; // CEO can disable a Candidate, e.g. for moral turpitude
   }
 
-  bytes[] public challenges;
-  mapping( bytes => Candidate ) public candidates;
+  string[] public challenges; // an ADILOS challenge from each Candidate
+  mapping( string => Candidate ) public candidates;
 
   constructor ( string memory _ensname ) public {
     ensname = _ensname;
+  }
+
+  function getChallengeCount() public view returns (uint) {
+    return challenges.length;
   }
 
   function setRunning( bool _running ) external isCEO {
@@ -49,7 +53,7 @@ contract Votes is HasCEO {
   }
 
   function setCandidate( string calldata _name,
-                         bytes calldata _challenge,
+                         string calldata _challenge,
                          bool _status ) external isCEO {
 
     require( bytes(_name).length > 0 );
@@ -70,11 +74,9 @@ contract Votes is HasCEO {
   //       in the vote here. Votes made by unrecognized keys will not be
   //       valid/counted
 
-  function vote( bytes calldata _response ) external {
+  function vote( string calldata _response ) external {
 
     require( running, "election not running" );
-    require( _response.length > 64, "invalid response" );
-
     emit Vote( _response );
   }
 
