@@ -37,6 +37,9 @@ var ENROLLCTRL = (function() {
 
     global.setScannerCallback( res => {
       global.pauseQRScanner();
+
+      console.log( 'response: ' + res );
+
       let pubkey = getUserPubkey( res );
       if (pubkey) {
         voter = pubkey;
@@ -52,9 +55,14 @@ var ENROLLCTRL = (function() {
 
   function getUserPubkey( result ) {
 
-    if ( ADILOS.isValidResponseToChallenge(result, challenge) ) {
-      let responseObj = ADILOS.parseSimpleADILOS( result );
-      return responseObj.msg.toString('hex');
+    try {
+      if ( ADILOS.isValidResponseToChallenge(result, challenge) ) {
+        let responseObj = ADILOS.parseSimpleADILOS( result );
+        return responseObj.msg.toString('hex');
+      }
+    }
+    catch( err ) {
+      console.log( err.toString() );
     }
 
     return null;
